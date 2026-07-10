@@ -781,6 +781,12 @@ const isInputShort = totalCharacters > 0 && totalCharacters < 30;
   )}
 </section>
 )}
+
+<footer className="mt-10 border-t border-zinc-200 pt-4 text-center text-xs text-zinc-500 dark:border-zinc-700 dark:text-zinc-400">
+  <p>日報作成支援アプリ Ver.1.0.0</p>
+  <p>© 2026 Tooru</p>
+</footer>
+
 </div>
 </div>
 );
