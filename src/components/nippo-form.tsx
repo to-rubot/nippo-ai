@@ -343,6 +343,14 @@ export function NippoForm() {
     new Set(Object.values(tagItems).flat())
   );
 
+  const totalHistoryCount = history.length;
+
+  const favoriteCount = favoriteItems.length;
+
+  const totalTagCount = Array.from(
+    new Set(Object.values(tagItems).flat())
+  ).length;
+
   const filteredHistory = history.filter((item) => {
     const tags = tagItems[item] || [];
   
@@ -517,6 +525,41 @@ const isInputShort = totalCharacters > 0 && totalCharacters < 30;
           {result || "「日報を生成」を押すと、ここに結果が表示されます。"}
         </div>
       </section>
+
+      <div className="mb-4 rounded-lg border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-700 dark:bg-zinc-900">
+        <h3 className="mb-2 text-sm font-semibold">
+          📊 統計
+        </h3>
+
+        <div className="grid grid-cols-3 gap-3 text-center">
+          <div>
+            <p className="text-xl font-bold">
+              {totalHistoryCount}
+            </p>
+            <p className="text-xs text-zinc-500">
+              日報
+            </p>
+          </div>
+
+          <div>
+            <p className="text-xl font-bold">
+              {favoriteCount}
+            </p>
+            <p className="text-xs text-zinc-500">
+              お気に入り
+            </p>
+          </div>
+
+          <div>
+            <p className="text-xl font-bold">
+              {totalTagCount}
+            </p>
+            <p className="text-xs text-zinc-500">
+              タグ
+            </p>
+          </div>
+        </div>
+      </div>
         
       {history.length > 0 && (
   <section className="mt-10">
