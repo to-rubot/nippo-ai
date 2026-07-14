@@ -51,6 +51,7 @@ export function NippoForm() {
   const [tagInput, setTagInput] = useState<Record<string, string>>({});
   const [selectedTag, setSelectedTag] = useState("");
   const [showSettings, setShowSettings] = useState(false);
+  const [showStatistics, setShowStatistics] = useState(true);
 
     useEffect(() => {
       const saved = localStorage.getItem("nippo-history");
@@ -69,6 +70,20 @@ export function NippoForm() {
 
       if (savedTags) {
         setTagItems(JSON.parse(savedTags));
+      }
+
+      const savedDarkMode = localStorage.getItem("nippo-dark-mode");
+
+      if (savedDarkMode !== null) {
+        setDarkMode(JSON.parse(savedDarkMode));
+      }
+
+      const savedShowStatistics = localStorage.getItem(
+        "nippo-show-statistics"
+      );
+
+      if (savedShowStatistics !== null) {
+        setShowStatistics(JSON.parse(savedShowStatistics));
       }
 
     }, []);
@@ -466,7 +481,16 @@ const isInputShort = totalCharacters > 0 && totalCharacters < 30;
 
       <button
         type="button"
-        onClick={() => setDarkMode(!darkMode)}
+        onClick={() => {
+          const newValue = !darkMode;
+        
+          setDarkMode(newValue);
+        
+          localStorage.setItem(
+            "nippo-dark-mode",
+            JSON.stringify(newValue)
+          );
+        }}
         className="mb-4 rounded-lg border border-zinc-400 px-3 py-2 text-sm"
       >
         {darkMode ? "☀️ ライトモード" : "🌙 ダークモード"}
@@ -601,40 +625,42 @@ const isInputShort = totalCharacters > 0 && totalCharacters < 30;
         </div>
       </section>
 
-      <div className="mb-4 rounded-lg border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-700 dark:bg-zinc-900">
-        <h3 className="mb-2 text-sm font-semibold">
-          📊 統計
-        </h3>
+      {showStatistics && (
+        <div className="mb-4 rounded-lg border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-700 dark:bg-zinc-900">
+          <h3 className="mb-2 text-sm font-semibold">
+            📊 統計
+          </h3>
 
-        <div className="grid grid-cols-3 gap-3 text-center">
-          <div>
-            <p className="text-xl font-bold">
-              {totalHistoryCount}
-            </p>
-            <p className="text-xs text-zinc-500">
-              日報
-            </p>
-          </div>
+          <div className="grid grid-cols-3 gap-3 text-center">
+            <div>
+              <p className="text-xl font-bold">
+                {totalHistoryCount}
+              </p>
+              <p className="text-xs text-zinc-500">
+                日報
+              </p>
+            </div>
 
-          <div>
-            <p className="text-xl font-bold">
-              {favoriteCount}
-            </p>
-            <p className="text-xs text-zinc-500">
-              お気に入り
-            </p>
-          </div>
+            <div>
+              <p className="text-xl font-bold">
+                {favoriteCount}
+              </p>
+              <p className="text-xs text-zinc-500">
+                お気に入り
+              </p>
+            </div>
 
-          <div>
-            <p className="text-xl font-bold">
-              {totalTagCount}
-            </p>
-            <p className="text-xs text-zinc-500">
-              タグ
-            </p>
+            <div>
+              <p className="text-xl font-bold">
+                {totalTagCount}
+              </p>
+              <p className="text-xs text-zinc-500">
+                タグ
+              </p>
+            </div>
           </div>
         </div>
-      </div>
+        )}
         
       {history.length > 0 && (
   <section className="mt-10">
@@ -963,6 +989,39 @@ const isInputShort = totalCharacters > 0 && totalCharacters < 30;
           {darkMode ? "ON" : "OFF"}
         </button>
       </div>
+
+        <div className="mb-4 flex items-center justify-between rounded-lg border border-zinc-200 p-3 dark:border-zinc-700">
+          <div>
+            <p className="text-sm font-medium">
+              統計を表示
+            </p>
+
+            <p className="text-xs text-zinc-500 dark:text-zinc-400">
+              統計カードの表示・非表示を切り替えます
+            </p>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => {
+              const newValue = !showStatistics;
+            
+              setShowStatistics(newValue);
+            
+              localStorage.setItem(
+                "nippo-show-statistics",
+                JSON.stringify(newValue)
+              );
+            }}
+            className={`rounded-full px-3 py-1 text-xs font-medium ${
+              showStatistics
+                ? "bg-blue-600 text-white"
+                : "bg-zinc-200 text-zinc-700"
+            }`}
+          >
+            {showStatistics ? "ON" : "OFF"}
+          </button>
+        </div>
 
       <div className="mb-4 rounded-lg border border-zinc-200 p-3 text-sm dark:border-zinc-700">
         <p className="font-medium">アプリ情報</p>
