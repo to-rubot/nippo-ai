@@ -50,6 +50,7 @@ export function NippoForm() {
   const [tagItems, setTagItems] = useState<Record<string, string[]>>({});
   const [tagInput, setTagInput] = useState<Record<string, string>>({});
   const [selectedTag, setSelectedTag] = useState("");
+  const [showSettings, setShowSettings] = useState(false);
 
     useEffect(() => {
       const saved = localStorage.getItem("nippo-history");
@@ -339,6 +340,72 @@ export function NippoForm() {
     );
   }
 
+  function handleDownloadBackup() {
+    const backupData = {
+      history,
+      favoriteItems,
+      tagItems,
+      exportedAt: new Date().toISOString(),
+    };
+  
+    const blob = new Blob(
+      [JSON.stringify(backupData, null, 2)],
+      { type: "application/json" }
+    );
+  
+    saveAs(
+      blob,
+      `nippo-backup_${new Date().toISOString().slice(0, 10)}.json`
+    );
+  }
+
+  function handleRestoreBackup(
+    event: React.ChangeEvent<HTMLInputElement>
+  ) {
+    const file = event.target.files?.[0];
+  
+    if (!file) return;
+  
+    const reader = new FileReader();
+  
+    reader.onload = () => {
+      try {
+        const backupData = JSON.parse(reader.result as string);
+  
+        const restoredHistory = backupData.history || [];
+        const restoredFavorites = backupData.favoriteItems || [];
+        const restoredTags = backupData.tagItems || {};
+  
+        setHistory(restoredHistory);
+        setFavoriteItems(restoredFavorites);
+        setTagItems(restoredTags);
+  
+        localStorage.setItem(
+          "nippo-history",
+          JSON.stringify(restoredHistory)
+        );
+  
+        localStorage.setItem(
+          "nippo-favorites",
+          JSON.stringify(restoredFavorites)
+        );
+  
+        localStorage.setItem(
+          "nippo-tags",
+          JSON.stringify(restoredTags)
+        );
+  
+        alert("バックアップを復元しました。");
+      } catch {
+        alert("バックアップファイルの読み込みに失敗しました。");
+      }
+  
+      event.target.value = "";
+    };
+  
+    reader.readAsText(file);
+  }
+
   const allTags = Array.from(
     new Set(Object.values(tagItems).flat())
   );
@@ -388,6 +455,14 @@ const isInputShort = totalCharacters > 0 && totalCharacters < 30;
          今日の業務内容を入力し、AIで日報を作成します
         </p>
       </header>
+
+      <button
+        type="button"
+        onClick={() => setShowSettings(true)}
+        className="rounded-lg border border-zinc-300 px-3 py-2 text-xs font-medium hover:bg-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-800"
+      >
+        ⚙️ 設定
+      </button>
 
       <button
         type="button"
@@ -653,6 +728,25 @@ const isInputShort = totalCharacters > 0 && totalCharacters < 30;
         >
           CSVで保存
         </button>
+
+        <button
+          type="button"
+          onClick={handleDownloadBackup}
+          className="rounded-lg border border-zinc-300 px-3 py-2 text-xs font-medium hover:bg-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-800"
+        >
+          バックアップ保存
+        </button>
+
+        <label className="cursor-pointer rounded-lg border border-blue-300 px-3 py-2 text-xs font-medium text-blue-600 hover:bg-blue-50 dark:border-blue-700 dark:hover:bg-blue-950">
+          バックアップ復元
+
+          <input
+            type="file"
+            accept=".json,application/json"
+            onChange={handleRestoreBackup}
+            className="hidden"
+          />
+        </label>
        
         <div className="mb-3 flex gap-2">
           <button
@@ -825,8 +919,71 @@ const isInputShort = totalCharacters > 0 && totalCharacters < 30;
 </section>
 )}
 
+{showSettings && (
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+    <div className="w-full max-w-md rounded-xl bg-white p-5 shadow-xl dark:bg-zinc-900">
+      <div className="mb-4 flex items-center justify-between">
+        <h2 className="text-lg font-bold">
+          ⚙️ 設定
+        </h2>
+
+        <button
+          type="button"
+          onClick={() => setShowSettings(false)}
+          className="text-sm text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200"
+        >
+          ✕
+        </button>
+      </div>
+
+      <p className="mb-4 text-sm text-zinc-600 dark:text-zinc-300">
+        アプリの表示や動作を設定できます。
+      </p>
+
+      <div className="mb-4 flex items-center justify-between rounded-lg border border-zinc-200 p-3 dark:border-zinc-700">
+        <div>
+          <p className="text-sm font-medium">
+            ダークモード
+          </p>
+
+          <p className="text-xs text-zinc-500 dark:text-zinc-400">
+            画面の明るさを切り替えます
+          </p>
+        </div>
+
+        <button
+          type="button"
+          onClick={() => setDarkMode(!darkMode)}
+          className={`rounded-full px-3 py-1 text-xs font-medium ${
+            darkMode
+              ? "bg-blue-600 text-white"
+              : "bg-zinc-200 text-zinc-700"
+          }`}
+        >
+          {darkMode ? "ON" : "OFF"}
+        </button>
+      </div>
+
+      <div className="mb-4 rounded-lg border border-zinc-200 p-3 text-sm dark:border-zinc-700">
+        <p className="font-medium">アプリ情報</p>
+        <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+          日報作成支援アプリ Ver.1.1.0
+        </p>
+      </div>
+
+      <button
+        type="button"
+        onClick={() => setShowSettings(false)}
+        className="w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm font-medium hover:bg-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-800"
+      >
+        閉じる
+      </button>
+    </div>
+  </div>
+)}
+
 <footer className="mt-10 border-t border-zinc-200 pt-4 text-center text-xs text-zinc-500 dark:border-zinc-700 dark:text-zinc-400">
-  <p>日報作成支援アプリ Ver.1.0.0</p>
+  <p>日報作成支援アプリ Ver.1.1.0</p>
   <p>© 2026 Tooru</p>
 </footer>
 
