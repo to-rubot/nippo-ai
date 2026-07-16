@@ -52,6 +52,8 @@ export function NippoForm() {
   const [selectedTag, setSelectedTag] = useState("");
   const [showSettings, setShowSettings] = useState(false);
   const [showStatistics, setShowStatistics] = useState(true);
+  const [userName, setUserName] = useState("");
+  const [companyName, setCompanyName] = useState("");
 
     useEffect(() => {
       const saved = localStorage.getItem("nippo-history");
@@ -86,6 +88,18 @@ export function NippoForm() {
         setShowStatistics(JSON.parse(savedShowStatistics));
       }
 
+      const savedUserName = localStorage.getItem("nippo-user-name");
+
+      if (savedUserName) {
+      setUserName(savedUserName);
+      }
+
+      const savedCompanyName = localStorage.getItem("nippo-company-name");
+
+      if (savedCompanyName) {
+      setCompanyName(savedCompanyName);
+      }
+
     }, []);
 
   async function handleGenerate() {
@@ -108,17 +122,24 @@ export function NippoForm() {
         report: string;
         mode: "ai" | "template";
       };
-      setResult(data.report);
-      setMode(data.mode);
-      const now = new Date().toLocaleString("ja-JP", {
-        year: "numeric",
-        month: "2-digit",
-        day: "2-digit",
-        hour: "2-digit",
-        minute: "2-digit",
-      });
+
+      const profileText = [
+        userName ? `作成者：${userName}` : "",
+        companyName ? `会社名：${companyName}` : "",
+      ]
+        .filter(Boolean)
+        .join("\n");
       
-      const newHistory = [`【作成日時】${now}\n\n${data.report}`, ...history];
+      const reportWithProfile = profileText
+        ? `${data.report}\n\n${profileText}`
+        : data.report;
+      
+      setResult(reportWithProfile);
+      
+      const newHistory =  [
+        `【作成日時】${now}\n\n${reportWithProfile}`,
+        ...history,
+      ];
 
       setHistory(newHistory);
 
@@ -127,7 +148,20 @@ export function NippoForm() {
         JSON.stringify(newHistory)
       );
     } catch {
-      setResult(formatNippo(values));
+      const fallback = formatNippo(values);
+
+      const profileText = [
+        userName ? `作成者：${userName}` : "",
+        companyName ? `会社名：${companyName}` : "",
+      ]
+        .filter(Boolean)
+        .join("\n");
+
+      const fallbackWithProfile = profileText
+        ? `${fallback}\n\n${profileText}`
+        : fallback;
+
+      setResult(fallbackWithProfile);
       setMode("template");
       setError("API に接続できなかったため、テンプレートで生成しました。");
     } finally {
@@ -152,6 +186,13 @@ export function NippoForm() {
       troubles: "",
       tomorrow: "",
     });
+  }
+
+  function handleSaveProfile() {
+    localStorage.setItem("nippo-user-name", userName);
+    localStorage.setItem("nippo-company-name", companyName);
+  
+    alert("プロフィールを保存しました。");
   }
 
   function handleClearResult() {
@@ -987,6 +1028,48 @@ const isInputShort = totalCharacters > 0 && totalCharacters < 30;
           }`}
         >
           {darkMode ? "ON" : "OFF"}
+        </button>
+      </div>
+
+      <div className="mb-4 rounded-lg border border-zinc-200 p-3 dark:border-zinc-700">
+        <p className="mb-3 text-sm font-medium">
+          プロフィール
+        </p>
+
+        <div className="mb-3">
+          <label className="mb-1 block text-xs text-zinc-500 dark:text-zinc-400">
+            ユーザー名
+          </label>
+
+          <input
+            type="text"
+            value={userName}
+            onChange={(e) => setUserName(e.target.value)}
+            placeholder="例：山本　太郎"
+            className="w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-950"
+          />
+        </div>
+
+        <div className="mb-3">
+          <label className="mb-1 block text-xs text-zinc-500 dark:text-zinc-400">
+            会社名
+          </label>
+
+          <input
+            type="text"
+            value={companyName}
+            onChange={(e) => setCompanyName(e.target.value)}
+            placeholder="例：〇〇株式会社"
+            className="w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-950"
+          />
+        </div>
+
+        <button
+          type="button"
+          onClick={handleSaveProfile}
+          className="w-full rounded-lg border border-blue-300 px-3 py-2 text-sm font-medium text-blue-600 hover:bg-blue-50 dark:border-blue-700 dark:hover:bg-blue-950"
+        >
+          プロフィールを保存
         </button>
       </div>
 
