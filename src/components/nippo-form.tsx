@@ -54,6 +54,8 @@ export function NippoForm() {
   const [showStatistics, setShowStatistics] = useState(true);
   const [userName, setUserName] = useState("");
   const [companyName, setCompanyName] = useState("");
+  const [departmentName, setDepartmentName] = useState("");
+  const [profileSaved, setProfileSaved] = useState(false);
 
     useEffect(() => {
       const saved = localStorage.getItem("nippo-history");
@@ -100,6 +102,14 @@ export function NippoForm() {
       setCompanyName(savedCompanyName);
       }
 
+      const savedDepartmentName = localStorage.getItem(
+        "nippo-department-name"
+      );
+      
+      if (savedDepartmentName) {
+        setDepartmentName(savedDepartmentName);
+      }
+
     }, []);
 
   async function handleGenerate() {
@@ -126,6 +136,7 @@ export function NippoForm() {
       const profileText = [
         userName ? `作成者：${userName}` : "",
         companyName ? `会社名：${companyName}` : "",
+        departmentName ? `部署名：${departmentName}` : "",
       ]
         .filter(Boolean)
         .join("\n");
@@ -191,8 +202,16 @@ export function NippoForm() {
   function handleSaveProfile() {
     localStorage.setItem("nippo-user-name", userName);
     localStorage.setItem("nippo-company-name", companyName);
+    localStorage.setItem(
+      "nippo-department-name",
+      departmentName
+    );
   
-    alert("プロフィールを保存しました。");
+    setProfileSaved(true);
+
+    setTimeout(() => {
+      setProfileSaved(false);
+    }, 3000);
   }
 
   function handleClearResult() {
@@ -1064,6 +1083,20 @@ const isInputShort = totalCharacters > 0 && totalCharacters < 30;
           />
         </div>
 
+        <div className="mb-3">
+          <label className="mb-1 block text-xs text-zinc-500 dark:text-zinc-400">
+            部署名
+          </label>
+
+          <input
+            type="text"
+            value={departmentName}
+            onChange={(e) => setDepartmentName(e.target.value)}
+            placeholder="例：開発部"
+            className="w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-950"
+          />
+        </div>
+
         <button
           type="button"
           onClick={handleSaveProfile}
@@ -1071,6 +1104,12 @@ const isInputShort = totalCharacters > 0 && totalCharacters < 30;
         >
           プロフィールを保存
         </button>
+
+        {profileSaved && (
+          <div className="mt-3 rounded-lg border border-green-300 bg-green-50 p-3 text-center text-sm font-medium text-green-700 dark:border-green-700 dark:bg-green-900/20 dark:text-green-300">
+            ✅ プロフィールを保存しました
+          </div>
+        )}
       </div>
 
         <div className="mb-4 flex items-center justify-between rounded-lg border border-zinc-200 p-3 dark:border-zinc-700">
@@ -1108,9 +1147,12 @@ const isInputShort = totalCharacters > 0 && totalCharacters < 30;
 
       <div className="mb-4 rounded-lg border border-zinc-200 p-3 text-sm dark:border-zinc-700">
         <p className="font-medium">アプリ情報</p>
-        <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
-          日報作成支援アプリ Ver.1.1.0
-        </p>
+        <div className="mt-2 space-y-1 text-xs text-zinc-500 dark:text-zinc-400">
+          <p>日報作成支援アプリ</p>
+          <p>Ver.1.2.0</p>
+          <p>開発者：Tooru</p>
+          <p>最終更新：2026年7月</p>
+        </div>
       </div>
 
       <button
@@ -1125,7 +1167,7 @@ const isInputShort = totalCharacters > 0 && totalCharacters < 30;
 )}
 
 <footer className="mt-10 border-t border-zinc-200 pt-4 text-center text-xs text-zinc-500 dark:border-zinc-700 dark:text-zinc-400">
-  <p>日報作成支援アプリ Ver.1.1.0</p>
+  <p>日報作成支援アプリ Ver.1.2.0</p>
   <p>© 2026 Tooru</p>
 </footer>
 
