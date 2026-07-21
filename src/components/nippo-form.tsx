@@ -56,6 +56,7 @@ export function NippoForm() {
   const [companyName, setCompanyName] = useState("");
   const [departmentName, setDepartmentName] = useState("");
   const [profileSaved, setProfileSaved] = useState(false);
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
 
     useEffect(() => {
       const saved = localStorage.getItem("nippo-history");
@@ -221,6 +222,33 @@ export function NippoForm() {
     setTimeout(() => {
       setProfileSaved(false);
     }, 3000);
+  }
+
+  function handleResetSettings() {
+
+    setDarkMode(true);
+    setShowStatistics(true);
+    setUserName("");
+    setCompanyName("");
+    setDepartmentName("");
+  
+    localStorage.setItem(
+      "nippo-dark-mode",
+      JSON.stringify(true)
+    );
+  
+    localStorage.setItem(
+      "nippo-show-statistics",
+      JSON.stringify(true)
+    );
+  
+    localStorage.removeItem("nippo-user-name");
+    localStorage.removeItem("nippo-company-name");
+    localStorage.removeItem("nippo-department-name");
+  
+    setProfileSaved(false);
+
+    setShowResetConfirm(false);
   }
 
   function handleClearResult() {
@@ -1166,11 +1194,59 @@ const isInputShort = totalCharacters > 0 && totalCharacters < 30;
 
       <button
         type="button"
+        onClick={() => setShowResetConfirm(true)}
+        className="mb-3 w-full rounded-lg border border-red-300 px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50 dark:border-red-700 dark:hover:bg-red-950"
+      >
+        設定を初期状態に戻す
+      </button>
+
+      <button
+        type="button"
         onClick={() => setShowSettings(false)}
         className="w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm font-medium hover:bg-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-800"
       >
         閉じる
       </button>
+    </div>
+  </div>
+)}
+
+{showResetConfirm && (
+  <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 p-4">
+    <div className="w-full max-w-sm rounded-xl bg-white p-5 text-zinc-900 shadow-xl dark:bg-zinc-900 dark:text-white">
+      <h2 className="mb-3 text-lg font-bold">
+        設定を初期化しますか？
+      </h2>
+
+      <div className="mb-4 text-sm text-zinc-600 dark:text-zinc-300">
+        <p>・ダークモード：ON</p>
+        <p>・統計表示：ON</p>
+        <p>・ユーザー名：削除</p>
+        <p>・会社名：削除</p>
+        <p>・部署名：削除</p>
+
+        <p className="mt-3 text-xs">
+          ※日報履歴・タグ・お気に入りは削除されません。
+        </p>
+      </div>
+
+      <div className="flex gap-2">
+        <button
+          type="button"
+          onClick={() => setShowResetConfirm(false)}
+          className="w-1/2 rounded-lg border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-700"
+        >
+          キャンセル
+        </button>
+
+        <button
+          type="button"
+          onClick={handleResetSettings}
+          className="w-1/2 rounded-lg bg-red-600 px-3 py-2 text-sm font-medium text-white hover:bg-red-700"
+        >
+          初期化する
+        </button>
+      </div>
     </div>
   </div>
 )}
