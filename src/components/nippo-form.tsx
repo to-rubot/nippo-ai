@@ -117,6 +117,14 @@ export function NippoForm() {
     setError("");
     setMode(null);
 
+    const now = new Date().toLocaleString("ja-JP", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+
     try {
       const res = await fetch("/api/generate", {
         method: "POST",
@@ -164,6 +172,7 @@ export function NippoForm() {
       const profileText = [
         userName ? `作成者：${userName}` : "",
         companyName ? `会社名：${companyName}` : "",
+        departmentName ? `部署名：${departmentName}` : "",
       ]
         .filter(Boolean)
         .join("\n");
