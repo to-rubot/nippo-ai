@@ -57,6 +57,8 @@ export function NippoForm() {
   const [departmentName, setDepartmentName] = useState("");
   const [profileSaved, setProfileSaved] = useState(false);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
+  const [openDates, setOpenDates] = useState<string[]>([]);
+  const [selectedDate, setSelectedDate] = useState("");
 
     useEffect(() => {
       const saved = localStorage.getItem("nippo-history");
@@ -195,6 +197,14 @@ export function NippoForm() {
     await navigator.clipboard.writeText(result)
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
+  }
+
+  function handleToggleDate(date: string) {
+    setOpenDates((prev) =>
+      prev.includes(date)
+        ? prev.filter((item) => item !== date)
+        : [...prev, date]
+    );
   }
 
   function handleClearForm() {
@@ -551,6 +561,38 @@ export function NippoForm() {
 const sortedHistory =
   sortOrder === "new" ? filteredHistory : [...filteredHistory].reverse();
 
+const groupedHistory = sortedHistory.reduce<
+  Record<string, string[]>
+>((groups, item) => {
+  const firstLine = item.split("\n")[0];
+
+  const dateMatch = firstLine.match(
+    /(\d{4})\/(\d{2})\/(\d{2})/
+  );
+
+  const groupName = dateMatch
+    ? `${dateMatch[1]}/${dateMatch[2]}/${dateMatch[3]}`
+    : "日付不明";
+
+  if (!groups[groupName]) {
+    groups[groupName] = [];
+  }
+
+  groups[groupName].push(item);
+
+  return groups;
+}, {});
+
+const filteredGroupedHistory = Object.entries(groupedHistory).filter(
+  ([date]) => {
+    if (selectedDate === "") return true;
+
+    const formattedSelectedDate = selectedDate.replaceAll("-", "/");
+
+    return date === formattedSelectedDate;
+  }
+);
+
 const totalCharacters =
   values.today.length + values.troubles.length + values.tomorrow.length;
 
@@ -894,8 +936,44 @@ const isInputShort = totalCharacters > 0 && totalCharacters < 30;
             検索結果がありません
           </p>
         ) : (
-          sortedHistory.map((item, index) => {
-            const firstLine = item.split("\n")[0];
+          <>
+        <div className="mb-4 flex items-center gap-2">
+          <input
+            type="date"
+            value={selectedDate}
+            onChange={(e) => setSelectedDate(e.target.value)}
+            className="rounded-lg border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-700"
+          />
+        
+          <button
+            type="button"
+            onClick={() => setSelectedDate("")}
+            className="rounded-lg border border-zinc-300 px-3 py-2 text-sm"
+          >
+            リセット
+          </button>
+        </div>
+        
+        {filteredGroupedHistory.map(([date, items]) => (
+          <div key={date} className="mb-6">
+            <button
+              type="button"
+              onClick={() => handleToggleDate(date)}
+              className="mb-3 flex w-full items-center justify-between rounded-lg bg-zinc-100 px-3 py-2 text-left text-sm font-bold text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100"
+            >
+              <span>
+                📅 {date}（{items.length}件）
+              </span>
+
+              <span>
+                {openDates.includes(date) ? "▼" : "▶"}
+              </span>
+            </button>
+          
+            {openDates.includes(date) &&
+              items.map((item) => {
+              const index = history.indexOf(item);
+              const firstLine = item.split("\n")[0];
           
             return (
             <div
@@ -1034,8 +1112,11 @@ const isInputShort = totalCharacters > 0 && totalCharacters < 30;
             )
             )}
           </div>
-         );
-        })
+        );
+       })}
+      </div>
+      ))}
+      </>
       )}
     </>
   )}
