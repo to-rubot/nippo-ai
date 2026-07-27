@@ -59,6 +59,11 @@ export function NippoForm() {
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [openDates, setOpenDates] = useState<string[]>([]);
   const [selectedDate, setSelectedDate] = useState("");
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+
+  const [historyImages, setHistoryImages] = useState<
+    Record<string, string>
+  >({});
 
     useEffect(() => {
       const saved = localStorage.getItem("nippo-history");
@@ -111,6 +116,14 @@ export function NippoForm() {
       
       if (savedDepartmentName) {
         setDepartmentName(savedDepartmentName);
+      }
+
+      const savedHistoryImages = localStorage.getItem(
+        "nippo-history-images"
+      );
+      
+      if (savedHistoryImages) {
+        setHistoryImages(JSON.parse(savedHistoryImages));
       }
 
     }, []);
@@ -169,6 +182,23 @@ export function NippoForm() {
         "nippo-history",
         JSON.stringify(newHistory)
       );
+
+      if (selectedImage) {
+        const historyKey = `【作成日時】${now}\n\n${reportWithProfile}`;
+      
+        const newHistoryImages = {
+          ...historyImages,
+          [historyKey]: selectedImage,
+        };
+      
+        setHistoryImages(newHistoryImages);
+      
+        localStorage.setItem(
+          "nippo-history-images",
+          JSON.stringify(newHistoryImages)
+        );
+      }
+
     } catch {
       const fallback = formatNippo(values);
 
@@ -232,6 +262,22 @@ export function NippoForm() {
     setTimeout(() => {
       setProfileSaved(false);
     }, 3000);
+  }
+
+  function handleImageChange(
+    event: React.ChangeEvent<HTMLInputElement>
+  ) {
+    const file = event.target.files?.[0];
+  
+    if (!file) return;
+  
+    const reader = new FileReader();
+  
+    reader.onload = () => {
+      setSelectedImage(reader.result as string);
+    };
+  
+    reader.readAsDataURL(file);
   }
 
   function handleResetSettings() {
@@ -666,6 +712,29 @@ const isInputShort = totalCharacters > 0 && totalCharacters < 30;
             />
           </div>
         ))}
+
+          <div className="mb-4">
+            <label className="mb-2 block text-sm font-medium">
+              📷 作業画像
+            </label>
+
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleImageChange}
+              className="block w-full text-sm"
+            />
+          </div>
+
+          {selectedImage && (
+            <div className="mb-4">
+              <img
+                src={selectedImage}
+                alt="選択した作業画像のプレビュー"
+                className="max-h-64 rounded-lg border"
+              />
+            </div>
+          )}
 
         <div className="rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2 text-xs text-zinc-600 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300">
           入力合計：{totalCharacters}文字
@@ -1108,6 +1177,14 @@ const isInputShort = totalCharacters > 0 && totalCharacters < 30;
 
               <div className="mt-3 rounded-lg border border-zinc-200 bg-zinc-50 p-3 text-sm leading-relaxed text-zinc-800 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100">
                 {item}
+
+                {historyImages[item] && (
+                  <img
+                    src={historyImages[item]}
+                    alt="作業画像"
+                    className="mt-3 max-h-64 rounded-lg border object-contain"
+                  />
+                )}
               </div>
             )
             )}
