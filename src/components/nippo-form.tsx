@@ -60,6 +60,7 @@ export function NippoForm() {
   const [openDates, setOpenDates] = useState<string[]>([]);
   const [selectedDate, setSelectedDate] = useState("");
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
 
   const [historyImages, setHistoryImages] = useState<
     Record<string, string>
@@ -1180,10 +1181,11 @@ const isInputShort = totalCharacters > 0 && totalCharacters < 30;
 
                 {historyImages[item] && (
                   <img
-                    src={historyImages[item]}
-                    alt="作業画像"
-                    className="mt-3 max-h-64 rounded-lg border object-contain"
-                  />
+                  src={historyImages[item]}
+                  alt="作業画像"
+                  onClick={() => setPreviewImage(historyImages[item])}
+                  className="mt-3 max-h-64 max-w-full cursor-pointer rounded-lg border object-contain transition hover:opacity-80"
+                />
                 )}
               </div>
             )
@@ -1198,6 +1200,19 @@ const isInputShort = totalCharacters > 0 && totalCharacters < 30;
     </>
   )}
 </section>
+)}
+
+{previewImage && (
+  <div
+    className="fixed inset-0 z-50 flex items-center justify-center bg-black/80"
+    onClick={() => setPreviewImage(null)}
+  >
+    <img
+      src={previewImage}
+      alt="拡大画像"
+      className="max-h-[90vh] max-w-[90vw] rounded-lg"
+    />
+  </div>
 )}
 
 {showSettings && (
@@ -1344,7 +1359,7 @@ const isInputShort = totalCharacters > 0 && totalCharacters < 30;
         <p className="font-medium">アプリ情報</p>
         <div className="mt-2 space-y-1 text-xs text-zinc-500 dark:text-zinc-400">
           <p>日報作成支援アプリ</p>
-          <p>Ver.1.2.0</p>
+          <p>Ver.1.3.0</p>
           <p>開発者：Tooru</p>
           <p>最終更新：2026年7月</p>
         </div>
@@ -1410,7 +1425,7 @@ const isInputShort = totalCharacters > 0 && totalCharacters < 30;
 )}
 
 <footer className="mt-10 border-t border-zinc-200 pt-4 text-center text-xs text-zinc-500 dark:border-zinc-700 dark:text-zinc-400">
-  <p>日報作成支援アプリ Ver.1.2.0</p>
+  <p>日報作成支援アプリ Ver.1.3.0</p>
   <p>© 2026 Tooru</p>
 </footer>
 
