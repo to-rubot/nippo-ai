@@ -734,6 +734,14 @@ const isInputShort = totalCharacters > 0 && totalCharacters < 30;
                 alt="選択した作業画像のプレビュー"
                 className="max-h-64 rounded-lg border"
               />
+
+              <button
+                type="button"
+                onClick={() => setSelectedImage(null)}
+                className="mt-2 rounded-lg border border-red-300 px-3 py-2 text-sm text-red-700 hover:bg-red-50"
+              >
+                🗑️ 画像を削除
+              </button>
             </div>
           )}
 
