@@ -60,6 +60,7 @@ export function NippoForm() {
   const [openDates, setOpenDates] = useState<string[]>([]);
   const [selectedDate, setSelectedDate] = useState("");
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [selectedImageName, setSelectedImageName] = useState("");
   const [previewImage, setPreviewImage] = useState<string | null>(null);
 
   const [historyImages, setHistoryImages] = useState<
@@ -272,6 +273,8 @@ export function NippoForm() {
   
     if (!file) return;
   
+    setSelectedImageName(file.name);
+
     const reader = new FileReader();
   
     reader.onload = () => {
@@ -729,6 +732,11 @@ const isInputShort = totalCharacters > 0 && totalCharacters < 30;
 
           {selectedImage && (
             <div className="mb-4">
+            
+              <p className="mb-2 text-sm text-zinc-600 dark:text-zinc-400">
+                📄 {selectedImageName}
+              </p>
+
               <img
                 src={selectedImage}
                 alt="選択した作業画像のプレビュー"
@@ -737,7 +745,10 @@ const isInputShort = totalCharacters > 0 && totalCharacters < 30;
 
               <button
                 type="button"
-                onClick={() => setSelectedImage(null)}
+                onClick={() => {
+                  setSelectedImage(null);
+                  setSelectedImageName("");
+                }}
                 className="mt-2 rounded-lg border border-red-300 px-3 py-2 text-sm text-red-700 hover:bg-red-50"
               >
                 🗑️ 画像を削除
@@ -1367,7 +1378,7 @@ const isInputShort = totalCharacters > 0 && totalCharacters < 30;
         <p className="font-medium">アプリ情報</p>
         <div className="mt-2 space-y-1 text-xs text-zinc-500 dark:text-zinc-400">
           <p>日報作成支援アプリ</p>
-          <p>Ver.1.3.0</p>
+          <p>Ver.1.3.1</p>
           <p>開発者：Tooru</p>
           <p>最終更新：2026年7月</p>
         </div>
@@ -1433,7 +1444,7 @@ const isInputShort = totalCharacters > 0 && totalCharacters < 30;
 )}
 
 <footer className="mt-10 border-t border-zinc-200 pt-4 text-center text-xs text-zinc-500 dark:border-zinc-700 dark:text-zinc-400">
-  <p>日報作成支援アプリ Ver.1.3.0</p>
+  <p>日報作成支援アプリ Ver.1.3.1</p>
   <p>© 2026 Tooru</p>
 </footer>
 

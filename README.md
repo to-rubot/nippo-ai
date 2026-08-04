@@ -78,6 +78,12 @@ First, run the development server:
 ### 改善
 - 画像閲覧時の操作性を向上
 - 背景をクリックすると拡大表示を閉じられるように変更
+
+## Ver.1.3.1
+
+### 改善
+- 添付画像の削除機能を追加
+- 添付画像の操作性を改善
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
