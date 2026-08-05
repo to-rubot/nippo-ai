@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { formatNippo } from "@/lib/format-nippo";
-import { Document, Packer, Paragraph } from "docx";
+import { Document, Packer, Paragraph,ImageRun } from "docx";
 import { saveAs } from "file-saver";
 import { jsPDF } from "jspdf";
 
@@ -447,13 +447,50 @@ export function NippoForm() {
     );
   }
 
+  function dataUrlToUint8Array(dataUrl: string) {
+    const base64 = dataUrl.split(",")[1];
+    const binaryString = window.atob(base64);
+    const bytes = new Uint8Array(binaryString.length);
+  
+    for (let index = 0; index < binaryString.length; index++) {
+      bytes[index] = binaryString.charCodeAt(index);
+    }
+  
+    return bytes;
+  }
+
   async function handleDownloadWord() {
     if (!result) return;
+
+    const children = result
+      .split("\n")
+      .map((line) => new Paragraph(line));
+
+    if (selectedImage) {
+      children.push(
+        new Paragraph("【添付画像】")
+      );
+      
+      children.push(
+        new Paragraph({
+          children: [
+            new ImageRun({
+              data: dataUrlToUint8Array(selectedImage),
+              transformation: {
+                width: 500,
+                height: 300,
+              },
+              type: "png",
+            }),
+          ],
+        })
+      );
+    }
 
     const doc = new Document({
       sections: [
         {
-          children: result.split("\n").map((line) => new Paragraph(line)),
+          children,
         },
       ],
     });
