@@ -521,6 +521,20 @@ export function NippoForm() {
         </head>
         <body>
           ${result.replace(/\n/g, "<br>")}
+
+          ${
+            selectedImage
+              ? `
+                <div style="margin-top: 24px;">
+                  <p style="font-weight: bold;">【添付画像】</p>
+                  <img
+                    src="${selectedImage}"
+                    style="max-width: 100%; max-height: 600px; object-fit: contain;"
+                  />
+                </div>
+              `
+              : ""
+          }
         </body>
       </html>
     `);
