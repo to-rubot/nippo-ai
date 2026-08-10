@@ -59,12 +59,12 @@ export function NippoForm() {
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [openDates, setOpenDates] = useState<string[]>([]);
   const [selectedDate, setSelectedDate] = useState("");
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
-  const [selectedImageName, setSelectedImageName] = useState("");
+  const [selectedImages, setSelectedImages] = useState<string[]>([]);
+  const [selectedImageNames, setSelectedImageNames] = useState<string[]>([]);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
 
   const [historyImages, setHistoryImages] = useState<
-    Record<string, string>
+    Record<string, string | string[]>
   >({});
 
     useEffect(() => {
@@ -185,12 +185,12 @@ export function NippoForm() {
         JSON.stringify(newHistory)
       );
 
-      if (selectedImage) {
+      if (selectedImages.length > 0) {
         const historyKey = `【作成日時】${now}\n\n${reportWithProfile}`;
       
         const newHistoryImages = {
           ...historyImages,
-          [historyKey]: selectedImage,
+          [historyKey]: selectedImages,
         };
       
         setHistoryImages(newHistoryImages);
@@ -269,20 +269,56 @@ export function NippoForm() {
   function handleImageChange(
     event: React.ChangeEvent<HTMLInputElement>
   ) {
-    const file = event.target.files?.[0];
+    const files = Array.from(event.target.files ?? []);
   
-    if (!file) return;
+    if (files.length === 0) return;
   
-    setSelectedImageName(file.name);
-
-    const reader = new FileReader();
+    files.forEach((file) => {
+      const reader = new FileReader();
   
-    reader.onload = () => {
-      setSelectedImage(reader.result as string);
-    };
+      reader.onload = () => {
+        setSelectedImages((prev) => [
+          ...prev,
+          reader.result as string,
+        ]);
   
-    reader.readAsDataURL(file);
+        setSelectedImageNames((prev) => [
+          ...prev,
+          file.name,
+        ]);
+      };
+  
+      reader.readAsDataURL(file);
+    });
   }
+
+  function handleImageDrop(event: React.DragEvent<HTMLDivElement>) {
+  event.preventDefault();
+
+  const files = Array.from(event.dataTransfer.files).filter((file) =>
+    file.type.startsWith("image/")
+  );
+
+  if (files.length === 0) return;
+
+  files.forEach((file) => {
+    const reader = new FileReader();
+
+    reader.onload = () => {
+      setSelectedImages((prev) => [
+        ...prev,
+        reader.result as string,
+      ]);
+
+      setSelectedImageNames((prev) => [
+        ...prev,
+        file.name,
+      ]);
+    };
+
+    reader.readAsDataURL(file);
+  });
+}
 
   function handleResetSettings() {
 
@@ -466,26 +502,28 @@ export function NippoForm() {
       .split("\n")
       .map((line) => new Paragraph(line));
 
-    if (selectedImage) {
-      children.push(
-        new Paragraph("【添付画像】")
-      );
+      if (selectedImages.length > 0) {
+        children.push(
+          new Paragraph("【添付画像】")
+        );
       
-      children.push(
-        new Paragraph({
-          children: [
-            new ImageRun({
-              data: dataUrlToUint8Array(selectedImage),
-              transformation: {
-                width: 500,
-                height: 300,
-              },
-              type: "png",
-            }),
-          ],
-        })
-      );
-    }
+        selectedImages.forEach((image) => {
+          children.push(
+            new Paragraph({
+              children: [
+                new ImageRun({
+                  data: dataUrlToUint8Array(image),
+                  transformation: {
+                    width: 500,
+                    height: 300,
+                  },
+                  type: "png",
+                }),
+              ],
+            })
+          );
+        });
+      }
 
     const doc = new Document({
       sections: [
@@ -523,14 +561,27 @@ export function NippoForm() {
           ${result.replace(/\n/g, "<br>")}
 
           ${
-            selectedImage
+            selectedImages.length > 0
               ? `
                 <div style="margin-top: 24px;">
                   <p style="font-weight: bold;">【添付画像】</p>
-                  <img
-                    src="${selectedImage}"
-                    style="max-width: 100%; max-height: 600px; object-fit: contain;"
-                  />
+          
+                  ${selectedImages
+                    .map(
+                      (image) => `
+                        <img
+                          src="${image}"
+                          style="
+                            display: block;
+                            max-width: 100%;
+                            max-height: 600px;
+                            object-fit: contain;
+                            margin-bottom: 20px;
+                          "
+                        />
+                      `
+                    )
+                    .join("")}
                 </div>
               `
               : ""
@@ -768,44 +819,68 @@ const isInputShort = totalCharacters > 0 && totalCharacters < 30;
           </div>
         ))}
 
-          <div className="mb-4">
-            <label className="mb-2 block text-sm font-medium">
-              📷 作業画像
-            </label>
+        <div
+          className="mb-4 rounded-lg border-2 border-dashed border-zinc-300 p-4 text-center dark:border-zinc-700"
+          onDragOver={(e) => e.preventDefault()}
+          onDrop={handleImageDrop}
+        >
+          <p className="mb-2 text-sm font-medium">
+            📷 ここに画像をドラッグ＆ドロップ
+          </p>
 
-            <input
-              type="file"
-              accept="image/*"
-              onChange={handleImageChange}
-              className="block w-full text-sm"
-            />
-          </div>
+          <p className="mb-3 text-xs text-zinc-500">
+            またはファイルを選択
+          </p>
 
-          {selectedImage && (
+          <input
+            type="file"
+            accept="image/*"
+            multiple
+            onChange={handleImageChange}
+            className="block w-full text-sm"
+          />
+        </div>
+
+          {selectedImages.length > 0 && (
             <div className="mb-4">
-            
               <p className="mb-2 text-sm text-zinc-600 dark:text-zinc-400">
-                📄 {selectedImageName}
+                📷 選択した画像（{selectedImages.length}枚）
               </p>
 
-              <img
-                src={selectedImage}
-                alt="選択した作業画像のプレビュー"
-                className="max-h-64 rounded-lg border"
-              />
+              <div className="flex flex-wrap gap-3">
+                {selectedImages.map((image, index) => (
+                  <div key={index} className="relative">
+                    <img
+                      src={image}
+                      alt={`選択した作業画像 ${index + 1}`}
+                      className="h-32 w-32 rounded-lg border object-cover"
+                    />
 
-              <button
-                type="button"
-                onClick={() => {
-                  setSelectedImage(null);
-                  setSelectedImageName("");
-                }}
-                className="mt-2 rounded-lg border border-red-300 px-3 py-2 text-sm text-red-700 hover:bg-red-50"
-              >
-                🗑️ 画像を削除
-              </button>
+                    <p className="mt-1 max-w-32 truncate text-xs text-zinc-500">
+                      {selectedImageNames[index]}
+                    </p>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedImages((prev) =>
+                          prev.filter((_, i) => i !== index)
+                       );
+
+                        setSelectedImageNames((prev) =>
+                          prev.filter((_, i) => i !== index)
+                        );
+                      }}
+                      className="mt-1 rounded-lg border border-red-300 px-2 py-1 text-xs text-red-700 hover:bg-red-50"
+                    >
+                      画像を削除
+                    </button>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
+
 
         <div className="rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2 text-xs text-zinc-600 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300">
           入力合計：{totalCharacters}文字
@@ -1250,12 +1325,20 @@ const isInputShort = totalCharacters > 0 && totalCharacters < 30;
                 {item}
 
                 {historyImages[item] && (
-                  <img
-                  src={historyImages[item]}
-                  alt="作業画像"
-                  onClick={() => setPreviewImage(historyImages[item])}
-                  className="mt-3 max-h-64 max-w-full cursor-pointer rounded-lg border object-contain transition hover:opacity-80"
-                />
+                  <div className="mt-3 flex flex-wrap gap-3">
+                    {(Array.isArray(historyImages[item])
+                      ? historyImages[item]
+                      : [historyImages[item]]
+                    ).map((image, index) => (
+                      <img
+                        key={index}
+                        src={image}
+                        alt={`作業画像 ${index + 1}`}
+                        onClick={() => setPreviewImage(image)}
+                        className="max-h-64 max-w-full cursor-pointer rounded-lg border object-contain transition hover:opacity-80"
+                      />
+                    ))}
+                  </div>
                 )}
               </div>
             )
