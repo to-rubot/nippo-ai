@@ -62,6 +62,7 @@ export function NippoForm() {
   const [selectedImages, setSelectedImages] = useState<string[]>([]);
   const [selectedImageNames, setSelectedImageNames] = useState<string[]>([]);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const [copyNotice, setCopyNotice] = useState(false);
 
   const [historyImages, setHistoryImages] = useState<
     Record<string, string | string[]>
@@ -270,6 +271,11 @@ export function NippoForm() {
     event: React.ChangeEvent<HTMLInputElement>
   ) {
     const files = Array.from(event.target.files ?? []);
+
+    if (selectedImages.length + files.length > 5) {
+      alert("画像は最大5枚まで添付できます");
+      return;
+    }
   
     if (files.length === 0) return;
   
@@ -298,6 +304,11 @@ export function NippoForm() {
   const files = Array.from(event.dataTransfer.files).filter((file) =>
     file.type.startsWith("image/")
   );
+
+  if (selectedImages.length + files.length > 5) {
+    alert("画像は最大5枚まで添付できます");
+    return;
+  }
 
   if (files.length === 0) return;
 
@@ -614,6 +625,21 @@ export function NippoForm() {
     );
   }
 
+  async function handleCopyReport() {
+    if (!result) return;
+  
+    try {
+      await navigator.clipboard.writeText(result);
+  
+      setCopyNotice(true);
+  
+      setTimeout(() => {
+        setCopyNotice(false);
+      }, 2000);
+    } catch {
+      alert("コピーに失敗しました");
+    }
+  }
   function handleDownloadBackup() {
     const backupData = {
       history,
@@ -819,17 +845,31 @@ const isInputShort = totalCharacters > 0 && totalCharacters < 30;
           </div>
         ))}
 
-        <div
-          className="mb-4 rounded-lg border-2 border-dashed border-zinc-300 p-4 text-center dark:border-zinc-700"
-          onDragOver={(e) => e.preventDefault()}
-          onDrop={handleImageDrop}
-        >
-          <p className="mb-2 text-sm font-medium">
-            📷 ここに画像をドラッグ＆ドロップ
+          <div
+            className={`mb-4 rounded-lg border-2 border-dashed p-4 text-center ${
+              selectedImages.length >= 5
+                ? "cursor-not-allowed border-zinc-200 opacity-50 dark:border-zinc-800"
+                : "border-zinc-300 dark:border-zinc-700"
+            }`}
+            onDragOver={(e) => e.preventDefault()}
+            onDrop={handleImageDrop}
+          >
+          <p className="mb-3 text-xs text-zinc-500">
+            {selectedImages.length >= 5
+              ? "追加できる画像はありません"
+              : "またはファイルを選択"}
+          </p>
+
+          <p className="mt-2 text-xs text-zinc-500">
+            {selectedImages.length >= 5
+              ? "最大5枚まで添付済みです"
+              : `あと${5 - selectedImages.length}枚追加できます`}
           </p>
 
           <p className="mb-3 text-xs text-zinc-500">
-            またはファイルを選択
+            {selectedImages.length >= 5
+              ? "追加できる画像はありません"
+              : "またはファイルを選択"}
           </p>
 
           <input
@@ -837,6 +877,7 @@ const isInputShort = totalCharacters > 0 && totalCharacters < 30;
             accept="image/*"
             multiple
             onChange={handleImageChange}
+            disabled={selectedImages.length >= 5}
             className="block w-full text-sm"
           />
         </div>
@@ -846,6 +887,21 @@ const isInputShort = totalCharacters > 0 && totalCharacters < 30;
               <p className="mb-2 text-sm text-zinc-600 dark:text-zinc-400">
                 📷 選択した画像（{selectedImages.length}枚）
               </p>
+
+              <button
+                type="button"
+                onClick={() => {
+                  const ok = window.confirm("選択した画像をすべて削除しますか？");
+                
+                  if (!ok) return;
+                
+                  setSelectedImages([]);
+                  setSelectedImageNames([]);
+                }}
+                className="mb-3 rounded-lg border border-red-300 px-3 py-2 text-sm text-red-700 hover:bg-red-50"
+              >
+                🗑️ すべての画像を削除
+              </button>
 
               <div className="flex flex-wrap gap-3">
                 {selectedImages.map((image, index) => (
@@ -943,6 +999,15 @@ const isInputShort = totalCharacters > 0 && totalCharacters < 30;
                 className="rounded-lg border border-zinc-300 px-3 py-2 text-xs font-medium hover:bg-zinc-100"
               >
                 PDFで保存
+              </button>
+
+              <button
+                type="button"
+                onClick={handleCopyReport}
+                disabled={!result}
+                className="rounded-lg border border-zinc-300 px-3 py-2 text-sm font-medium hover:bg-zinc-100 disabled:cursor-not-allowed disabled:opacity-50 dark:border-zinc-700 dark:hover:bg-zinc-800"
+              >
+                📋 日報をコピー
               </button>
 
               <button
@@ -1365,6 +1430,12 @@ const isInputShort = totalCharacters > 0 && totalCharacters < 30;
       alt="拡大画像"
       className="max-h-[90vh] max-w-[90vw] rounded-lg"
     />
+  </div>
+)}
+
+{copyNotice && (
+  <div className="fixed bottom-6 right-6 z-50 rounded-lg bg-zinc-900 px-4 py-3 text-sm font-medium text-white shadow-lg dark:bg-white dark:text-zinc-900">
+    ✅ 日報をコピーしました
   </div>
 )}
 
