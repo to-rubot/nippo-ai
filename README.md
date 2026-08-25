@@ -84,6 +84,8 @@ First, run the development server:
 ### 改善
 - 添付画像の削除機能を追加
 - 添付画像の操作性を改善
+- 日報コピー機能を追加
+- コピー成功時の通知表示を追加
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
