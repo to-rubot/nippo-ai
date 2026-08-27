@@ -331,6 +331,28 @@ export function NippoForm() {
   });
 }
 
+function moveImage(index: number, direction: "left" | "right") {
+  const newIndex = direction === "left" ? index - 1 : index + 1;
+
+  if (newIndex < 0 || newIndex >= selectedImages.length) return;
+
+  const newImages = [...selectedImages];
+  const newNames = [...selectedImageNames];
+
+  [newImages[index], newImages[newIndex]] = [
+    newImages[newIndex],
+    newImages[index],
+  ];
+
+  [newNames[index], newNames[newIndex]] = [
+    newNames[newIndex],
+    newNames[index],
+  ];
+
+  setSelectedImages(newImages);
+  setSelectedImageNames(newNames);
+}
+
   function handleResetSettings() {
 
     setDarkMode(true);
@@ -916,6 +938,26 @@ const isInputShort = totalCharacters > 0 && totalCharacters < 30;
                       {selectedImageNames[index]}
                     </p>
 
+                    <div className="mt-1 flex gap-1">
+                      <button
+                        type="button"
+                        onClick={() => moveImage(index, "left")}
+                        disabled={index === 0}
+                        className="rounded border px-2 py-1 text-xs disabled:opacity-30"
+                      >
+                        ← 前へ
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => moveImage(index, "right")}
+                        disabled={index === selectedImages.length - 1}
+                        className="rounded border px-2 py-1 text-xs disabled:opacity-30"
+                      >
+                        次へ →
+                      </button>
+                    </div>
+
                     <button
                       type="button"
                       onClick={() => {
@@ -1007,7 +1049,10 @@ const isInputShort = totalCharacters > 0 && totalCharacters < 30;
                 disabled={!result}
                 className="rounded-lg border border-zinc-300 px-3 py-2 text-sm font-medium hover:bg-zinc-100 disabled:cursor-not-allowed disabled:opacity-50 dark:border-zinc-700 dark:hover:bg-zinc-800"
               >
-                📋 日報をコピー
+                {copyNotice ? "✅ コピー済み" : "📋 日報全文をコピー"}
+                <p className="mt-1 text-xs text-zinc-500">
+                  生成した日報全文をコピーします
+                </p>
               </button>
 
               <button
