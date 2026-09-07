@@ -63,6 +63,8 @@ export function NippoForm() {
   const [selectedImageNames, setSelectedImageNames] = useState<string[]>([]);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [copyNotice, setCopyNotice] = useState(false);
+  const [draggedImageIndex, setDraggedImageIndex] = useState<number | null>(null);
+  const [draftLoaded, setDraftLoaded] = useState(false);
 
   const [historyImages, setHistoryImages] = useState<
     Record<string, string | string[]>
@@ -129,6 +131,25 @@ export function NippoForm() {
         setHistoryImages(JSON.parse(savedHistoryImages));
       }
 
+    }, []);
+
+    useEffect(() => {
+      if (!draftLoaded) return;
+    
+      localStorage.setItem(
+        "nippo-draft",
+        JSON.stringify(values)
+      );
+    }, [values, draftLoaded]);
+    
+    useEffect(() => {
+      const savedDraft = localStorage.getItem("nippo-draft");
+    
+      if (savedDraft) {
+        setValues(JSON.parse(savedDraft));
+      }
+
+      setDraftLoaded(true);
     }, []);
 
   async function handleGenerate() {
@@ -669,6 +690,19 @@ function moveImage(index: number, direction: "left" | "right") {
       tagItems,
       exportedAt: new Date().toISOString(),
     };
+    
+  async function handleCopyHistoryItem(item: string) {
+    try {
+      await navigator.clipboard.writeText(item);
+      setCopyNotice(true);
+
+      setTimeout(() => {
+        setCopyNotice(false);
+      }, 2000);
+  } catch {
+    alert("コピーに失敗しました");
+  }
+  }
   
     const blob = new Blob(
       [JSON.stringify(backupData, null, 2)],
@@ -926,8 +960,31 @@ const isInputShort = totalCharacters > 0 && totalCharacters < 30;
               </button>
 
               <div className="flex flex-wrap gap-3">
-                {selectedImages.map((image, index) => (
-                  <div key={index} className="relative">
+              {selectedImages.map((image, index) => (
+                <div
+                  key={index}
+                  className={`relative ${
+                    draggedImageIndex === index ? "opacity-50" : ""
+                  }`}
+                  onDragOver={(e) => e.preventDefault()}
+                  onDrop={() => {
+                    if (draggedImageIndex === null || draggedImageIndex === index) return;
+
+                    const newImages = [...selectedImages];
+                    const newNames = [...selectedImageNames];
+
+                    const [movedImage] = newImages.splice(draggedImageIndex, 1);
+                    const [movedName] = newNames.splice(draggedImageIndex, 1);
+
+                    newImages.splice(index, 0, movedImage);
+                    newNames.splice(index, 0, movedName);
+
+                    setSelectedImages(newImages);
+                    setSelectedImageNames(newNames);
+                    setDraggedImageIndex(null);
+                  }}
+                >
+
                     <img
                       src={image}
                       alt={`選択した作業画像 ${index + 1}`}
@@ -1019,14 +1076,6 @@ const isInputShort = totalCharacters > 0 && totalCharacters < 30;
           </h2>
           {result && (
             <div className="mt-4 flex flex-wrap gap-2">
-              <button
-                type="button"
-                onClick={handleCopy}
-                className="rounded-lg border border-zinc-300 px-3 py-2 text-xs font-medium hover:bg-zinc-100"
-              >
-                日報をコピー
-              </button>
-
               <button
                 type="button"
                 onClick={handleDownloadWord}
@@ -1332,6 +1381,14 @@ const isInputShort = totalCharacters > 0 && totalCharacters < 30;
                   }`}
                 >
                   {favoriteItems.includes(item) ? "★ お気に入り解除" : "☆ お気に入り"}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => handleCopyHistoryItem(item)}
+                  className="rounded-lg border border-zinc-300 px-3 py-1 text-xs font-medium hover:bg-zinc-100"
+                >
+                  📋 この日報をコピー
                 </button>
               </div>
 
