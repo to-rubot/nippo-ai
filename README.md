@@ -86,6 +86,24 @@ First, run the development server:
 - 添付画像の操作性を改善
 - 日報コピー機能を追加
 - コピー成功時の通知表示を追加
+
+## 今後の予定
+
+- 下書き機能の操作性改善
+- 履歴機能の利便性向上
+- 画像並び替え機能のUI改善
+- Word・PDF出力レイアウトの改善
+
+## 主な機能
+
+- AIによる日報生成
+- 日報履歴の保存・検索
+- Word・PDF・CSV出力
+- 複数画像の添付
+- ドラッグ＆ドロップによる画像追加
+- 画像の並び替え
+- 下書きの自動保存
+- 日報全文のコピー
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
