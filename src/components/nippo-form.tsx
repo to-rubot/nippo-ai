@@ -690,7 +690,18 @@ function moveImage(index: number, direction: "left" | "right") {
       tagItems,
       exportedAt: new Date().toISOString(),
     };
-    
+  
+    const blob = new Blob(
+      [JSON.stringify(backupData, null, 2)],
+      { type: "application/json" }
+    );
+  
+    saveAs(
+      blob,
+      `nippo-backup_${new Date().toISOString().slice(0, 10)}.json`
+    );
+  }
+
   async function handleCopyHistoryItem(item: string) {
     try {
       await navigator.clipboard.writeText(item);
@@ -702,17 +713,6 @@ function moveImage(index: number, direction: "left" | "right") {
   } catch {
     alert("コピーに失敗しました");
   }
-  }
-  
-    const blob = new Blob(
-      [JSON.stringify(backupData, null, 2)],
-      { type: "application/json" }
-    );
-  
-    saveAs(
-      blob,
-      `nippo-backup_${new Date().toISOString().slice(0, 10)}.json`
-    );
   }
 
   function handleRestoreBackup(
@@ -850,23 +850,6 @@ const isInputShort = totalCharacters > 0 && totalCharacters < 30;
         className="rounded-lg border border-zinc-300 px-3 py-2 text-xs font-medium hover:bg-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-800"
       >
         ⚙️ 設定
-      </button>
-
-      <button
-        type="button"
-        onClick={() => {
-          const newValue = !darkMode;
-        
-          setDarkMode(newValue);
-        
-          localStorage.setItem(
-            "nippo-dark-mode",
-            JSON.stringify(newValue)
-          );
-        }}
-        className="mb-4 rounded-lg border border-zinc-400 px-3 py-2 text-sm"
-      >
-        {darkMode ? "☀️ ライトモード" : "🌙 ダークモード"}
       </button>
 
       <form
@@ -1040,6 +1023,33 @@ const isInputShort = totalCharacters > 0 && totalCharacters < 30;
         <div className="rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2 text-xs text-zinc-600 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300">
           入力合計：{totalCharacters}文字
         </div>
+
+        <p className="mt-2 text-xs text-zinc-500 dark:text-zinc-400">
+          ✅ 下書きはこの端末に自動保存されます
+        </p>
+
+        <p className="mt-1 text-xs text-zinc-400 dark:text-zinc-500">
+          ブラウザを更新しても入力内容は残ります
+        </p>
+        <button
+          type="button"
+          onClick={() => {
+            const ok = window.confirm("保存中の下書きを削除しますか？");
+
+            if (!ok) return;
+
+            setValues({
+              today: "",
+              troubles: "",
+              tomorrow: "",
+            });
+
+            localStorage.removeItem("nippo-draft");
+          }}
+          className="mt-2 rounded-lg border border-red-300 px-3 py-2 text-xs font-medium text-red-700 hover:bg-red-50 dark:border-red-700 dark:text-red-300 dark:hover:bg-red-950"
+        >
+          🗑️ 下書きをクリア
+        </button>
 
         {isInputShort && (
           <div className="rounded-lg border border-yellow-300 bg-yellow-50 px-3 py-2 text-xs text-yellow-800 dark:border-yellow-700 dark:bg-yellow-950 dark:text-yellow-200">
